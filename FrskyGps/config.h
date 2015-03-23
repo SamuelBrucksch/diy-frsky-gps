@@ -15,7 +15,7 @@
 
 /* #### Telemetry pin ####
  *
- * chose one pin
+ * chose a pin for telemetry output. You need to solder the cable to that pin and connect it to RX of the receiver
  *
  */
 #define TELEMETRY_TX_PIN 9
