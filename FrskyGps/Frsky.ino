@@ -62,8 +62,8 @@ byte addPayload(byte DataID) {
     // (7 * 10) + 3 = 73   (7 satelliteds, 3 = 3D Fix)
   case 0x05:
     outBuff[payloadLen + 0] = 0x05;
-    outBuff[payloadLen + 1] = sats;
-    outBuff[payloadLen + 2] = fix;
+    outBuff[payloadLen + 1] = lowByte((sats * 10) + fix);
+    outBuff[payloadLen + 2] = highByte((sats * 10) + fix);
     addedLen = 3;
     break;
   case 0x11:  // GPS Speed, before "."

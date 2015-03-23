@@ -82,7 +82,7 @@ void setup() {
 void loop() {
   //TODO if fixtype == 0 -> do not send data
   if (fixType.isValid()){
-    fix = (uint16_t)fixType.value();
+    fix = atoi(fixType.value());
   }
 
   switch(fix){

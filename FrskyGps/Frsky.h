@@ -5,9 +5,6 @@
 
 byte addPayload(byte DataID);
 byte sendPayload(byte len);
-void updateTime();
-long FixInt(long val, byte mp);
-void initFrskySerial();
 
 static long f_curMillis;
 static long f_preMillis;
