@@ -1,16 +1,16 @@
 /**
-* created by Samuel Brucksch
-*
-* parts of this code are not done by me
-**/
+ * created by Samuel Brucksch
+ *
+ * parts of this code are not done by me
+ **/
 
 #include "config.h"
 #include "inttypes.h"
 #ifdef FRSKY_D
-  #include "Frsky.h"
+#include "Frsky.h"
 #endif
 #ifdef FRSKY_X
-  #include "Frsky_S.h"
+#include "Frsky_S.h"
 #endif
 #include <TinyGPS++.h>
 
@@ -36,7 +36,7 @@ ISR(USART_RX_vect)
 
 void initUart() {
   UCSR0B |= (1 << RXEN0)  | (1 << TXEN0) | (1 << RXCIE0); // UART RX, TX und RX Interrupt einschalten
-  UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00)             ; // Asynchron 8N1
+  UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00);                // Asynchron 8N1
 
   UBRR0H = UBRRH_VALUE;
   UBRR0L = UBRRL_VALUE;
@@ -50,8 +50,7 @@ void initUart() {
 
 //maybe needs to be adapted for other CPUs
 void uart_putc(unsigned char c) {
-  while (!(UCSR0A & (1 << UDRE0)))
-  {
+  while (!(UCSR0A & (1 << UDRE0))){
   }
   UDR0 = c;
 }
@@ -65,12 +64,12 @@ void uart_puts (char *s){
 
 void setup() {
   initUart();
-  #ifdef FRSKY_D
-    frsky.begin(9600);
-  #endif
-  #ifdef FRSKY_X
-    frsky.begin(57600);
-  #endif
+#ifdef FRSKY_D
+  frsky.begin(9600);
+#endif
+#ifdef FRSKY_X
+  frsky.begin(57600);
+#endif
   pinMode(13, OUTPUT);
 }
 
@@ -85,7 +84,8 @@ void loop() {
     lon = ((deg * 100) +  ((gps.location.lng() - deg) * 60.0));
     lon_dir = gps.location.lng() > 0 ? 'E' : 'W';
     digitalWrite(13, HIGH);
-  } else {
+  } 
+  else {
     digitalWrite(13, LOW);
   }
 
@@ -104,10 +104,11 @@ void loop() {
   if (gps.satellites.isValid()) {
     sats = gps.satellites.value();
   }
-  
+
   if (fixType.isValid()){
     fix = (uint16_t)fixType.value();
   }
-  
+
   update_frsky();
 }
+
