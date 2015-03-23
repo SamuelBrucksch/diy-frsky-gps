@@ -6,17 +6,21 @@
 
 #include "config.h"
 #include "inttypes.h"
+#include <SoftwareSerial.h>
+#include "defines.h";
 #ifdef FRSKY_D
-#include "Frsky.h"
+  #include "Frsky.h"
+  SoftwareSerial frsky(3, TELEMETRY_TX_PIN, true);
 #endif
 #ifdef FRSKY_X
-#include "Frsky_S.h"
+  #include "FrSkySportSensor.h"
+  #include "FrSkySportSensorGps.h"
+  #include "FrSkySportTelemetry.h"
+  FrSkySportSensorGps gpsSensor;
+  FrSkySportTelemetry telemetry;
 #endif
+
 #include <TinyGPS++.h>
-
-#include <SoftwareSerial.h>
-SoftwareSerial frsky(3, TELEMETRY_TX_PIN, true);
-
 TinyGPSPlus gps;
 TinyGPSCustom fixType(gps, "GPGGA", 6);
 
@@ -68,25 +72,52 @@ void setup() {
   frsky.begin(9600);
 #endif
 #ifdef FRSKY_X
-  frsky.begin(57600);
+  telemetry.begin(TELEMETRY_TX_PIN, &gpsSensor);
 #endif
   pinMode(13, OUTPUT);
 }
 
-int deg;
 void loop() {
-  //we have a valid position
+  //TODO if fixtype == 0 -> do not send data
+  if (fixType.isValid()){
+    fix = (uint16_t)fixType.value();
+  }
+
+  switch(fix){
+  case 0:
+    digitalWrite(13, LOW);
+    break;
+  case 1:
+    //TODO blinking
+    if (millis() % 1000 < 500){
+      digitalWrite(13, HIGH);
+    }
+    else{
+      digitalWrite(13, LOW);
+    }
+    break;
+  case 2:
+    digitalWrite(13, HIGH);
+    break;
+  default:
+    digitalWrite(13, LOW);
+    break;
+  }
+
   if (gps.location.isValid()) {
-    deg = gps.location.lat();
+#ifdef FRSKY_D
+    int deg = gps.location.lat();
     lat = ((deg * 100) +  ((gps.location.lat() - deg) * 60.0));
     lat_dir = gps.location.lat() > 0 ? 'N' : 'S';
+
     deg = gps.location.lng();
     lon = ((deg * 100) +  ((gps.location.lng() - deg) * 60.0));
     lon_dir = gps.location.lng() > 0 ? 'E' : 'W';
-    digitalWrite(13, HIGH);
-  } 
-  else {
-    digitalWrite(13, LOW);
+#endif
+#ifdef FRSKY_X
+    lat = gps.location.lat();
+    lon = gps.location.lng();
+#endif
   }
 
   if (gps.altitude.isValid()) {
@@ -94,7 +125,12 @@ void loop() {
   }
 
   if (gps.speed.isValid()) {
+#ifdef FRSKY_D
     groundspeed = gps.speed.knots();
+#endif
+#ifdef FRSKY_X
+    groundspeed = gps.speed.kmph();
+#endif
   }
 
   if (gps.course.isValid()) {
@@ -105,10 +141,12 @@ void loop() {
     sats = gps.satellites.value();
   }
 
-  if (fixType.isValid()){
-    fix = (uint16_t)fixType.value();
-  }
-
+#ifdef FRSKY_D
   update_frsky();
+#endif
+#ifdef FRSKY_X
+  //ignore time
+  gpsSensor.setData(lat, lon, gps_alt, groundspeed, heading, 0, 0, 0, 0, 0, 0);
+  telemetry.send();
+#endif
 }
-
