@@ -6,7 +6,7 @@
 
 #include "config.h"
 #include "inttypes.h"
-#include <SoftwareSerial.h>
+#include "SoftwareSerial.h"
 #include "defines.h";
 #ifdef FRSKY_D
   #include "Frsky.h"
@@ -16,6 +16,7 @@
   #include "FrSkySportSensor.h"
   #include "FrSkySportSensorGps.h"
   #include "FrSkySportSensorRpm.h"
+  #include "FrSkySportSingleWireSerial.h"
   #include "FrSkySportTelemetry.h"
   FrSkySportSensorGps gpsSensor;
   FrSkySportSensorRpm rpmSensor;
@@ -131,7 +132,7 @@ void loop() {
     groundspeed = gps.speed.knots();
 #endif
 #ifdef FRSKY_X
-    groundspeed = gps.speed.kmph();
+    groundspeed = gps.speed.mps();
 #endif
   }
 
@@ -148,8 +149,8 @@ void loop() {
 #endif
 #ifdef FRSKY_X
   //ignore time
-  gpsSensor.setData(lat, lon, gps_alt, groundspeed, heading, 0, 0, 0, 0, 0, 0);
   rpmSensor.setData(0,0,(sats*10)+fix);
+  gpsSensor.setData(lat, lon, gps_alt, groundspeed, heading, 0, 0, 0, 0, 0, 0);
   telemetry.send();
 #endif
 }
