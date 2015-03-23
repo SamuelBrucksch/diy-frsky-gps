@@ -15,8 +15,10 @@
 #ifdef FRSKY_X
   #include "FrSkySportSensor.h"
   #include "FrSkySportSensorGps.h"
+  #include "FrSkySportSensorRpm.h"
   #include "FrSkySportTelemetry.h"
   FrSkySportSensorGps gpsSensor;
+  FrSkySportSensorRpm rpmSensor;
   FrSkySportTelemetry telemetry;
 #endif
 
@@ -72,7 +74,7 @@ void setup() {
   frsky.begin(9600);
 #endif
 #ifdef FRSKY_X
-  telemetry.begin(TELEMETRY_TX_PIN, &gpsSensor);
+  telemetry.begin(TELEMETRY_TX_PIN, &gpsSensor, &rpmSensor);
 #endif
   pinMode(13, OUTPUT);
 }
@@ -147,6 +149,7 @@ void loop() {
 #ifdef FRSKY_X
   //ignore time
   gpsSensor.setData(lat, lon, gps_alt, groundspeed, heading, 0, 0, 0, 0, 0, 0);
+  rpmSensor.setData(0,0,(sats*10)+fix);
   telemetry.send();
 #endif
 }
