@@ -8,6 +8,7 @@
 #include "inttypes.h"
 #include "SoftwareSerial.h"
 #include "defines.h";
+
 #ifdef FRSKY_D
   #include "Frsky.h"
   SoftwareSerial frsky(3, TELEMETRY_TX_PIN, true);
@@ -85,7 +86,6 @@ void loop() {
   if (fixType.isValid()){
     fix = atoi(fixType.value());
   }
-
   switch(fix){
   case 0:
     digitalWrite(13, LOW);
@@ -124,7 +124,7 @@ void loop() {
   }
 
   if (gps.altitude.isValid()) {
-    gps_alt = (int)gps.altitude.meters();
+    gps_alt = gps.altitude.meters();
   }
 
   if (gps.speed.isValid()) {

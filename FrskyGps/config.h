@@ -7,7 +7,7 @@
  * Its attached to the first post.
  *
  */
-#define FRSKY_X
+#define FRSKY_D
 
 /* #### GPS ####
  *

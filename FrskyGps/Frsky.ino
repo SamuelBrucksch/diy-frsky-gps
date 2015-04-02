@@ -1,5 +1,4 @@
 #ifdef FRSKY_D
-
 void update_frsky() {
 
   f_curMillis = millis();
@@ -10,9 +9,6 @@ void update_frsky() {
     // 200ms payload, construct Frame 1 on every loop
     packetOpen = true;
 
-    payloadLen += addPayload(0x14);   // Course, degree
-    payloadLen += addPayload(0x1c);   // Course, after "."
-
     payloadLen += addPayload(0x13);   // Longitude dddmmm
     payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
     payloadLen += addPayload(0x23);   // E/W
@@ -21,17 +17,21 @@ void update_frsky() {
     payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
     payloadLen += addPayload(0x22);   // N/S
 
-    payloadLen += addPayload(0x11);   // GPS Speed Knots
-    payloadLen += addPayload(0x19);   // GPS Speed after "."
-
     payloadLen += addPayload(0x01);   // GPS Altitude
     payloadLen += addPayload(0x09);   // GPS Altitude "."
 
-    payloadLen += addPayload(0x05);   // Temperature 2 -> sats
+    // 1000ms (1s) payload, contruct Frame every second
+    if(msCounter % 5 == 0) {
+      payloadLen += addPayload(0x05);   // Temperature 2 -> sats    
+      payloadLen += addPayload(0x14);   // Course, degree
+      payloadLen += addPayload(0x1c);   // Course, after "."
+      payloadLen += addPayload(0x11);   // GPS Speed Knots
+      payloadLen += addPayload(0x19);   // GPS Speed after "."
+    }
 
     packetOpen = false;
     payloadLen = sendPayload(payloadLen);
-
+    
     // Update loop counter
     msCounter ++;
   }
@@ -39,19 +39,21 @@ void update_frsky() {
 
 byte addPayload(byte DataID) {
   byte addedLen;
+  int tmp;
   switch (DataID) {
   case 0x01:  // GPS Altitude
+    tmp = int(gps_alt);
     outBuff[payloadLen + 0] = 0x01;
-    outBuff[payloadLen + 1] = lowByte(gps_alt);
-    outBuff[payloadLen + 2] = highByte(gps_alt);
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = highByte(tmp);
     addedLen = 3;
     break;
-  case 0x01+8:  // GPS Altitude
+  case 0x01+8:  // GPS Altitude after "."
     {
-      //float tmp = (gps_alt - int(gps_alt)) * 10000.0f;
+      int tmp = int(gps_alt*100.0f) % 100;
       outBuff[payloadLen + 0] = 0x01 + 8;
-      outBuff[payloadLen + 1] = 0;
-      outBuff[payloadLen + 2] = 0;
+      outBuff[payloadLen + 1] = lowByte(tmp);
+      outBuff[payloadLen + 2] = highByte(tmp);
       addedLen = 3;
     }
     break;
@@ -61,21 +63,24 @@ byte addPayload(byte DataID) {
     // For example if we have 7 satellites and we have solid 3D fix outcome will be
     // (7 * 10) + 3 = 73   (7 satelliteds, 3 = 3D Fix)
   case 0x05:
+    tmp = (sats*10) + fix;
     outBuff[payloadLen + 0] = 0x05;
-    outBuff[payloadLen + 1] = lowByte((sats * 10) + fix);
-    outBuff[payloadLen + 2] = highByte((sats * 10) + fix);
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = highByte(tmp);
     addedLen = 3;
     break;
   case 0x11:  // GPS Speed, before "."
+    tmp = int(groundspeed);
     outBuff[payloadLen + 0] = 0x11;
-    outBuff[payloadLen + 1] = lowByte(groundspeed);//FixInt(groundspeed, 1);
-    outBuff[payloadLen + 2] = highByte(groundspeed);//FixInt(groundspeed, 2);
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = highByte(tmp);
     addedLen = 3;
     break;
   case 0x11+8:  // GPS Speed, after "."
+    tmp = int(groundspeed*100.0f) % 100;
     outBuff[payloadLen + 0] = 0x11 + 8;
-    outBuff[payloadLen + 1] = 0x00;
-    outBuff[payloadLen + 2] = 0x00;
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = highByte(tmp);
     addedLen = 3;
     break;
     //Little Endian exception
@@ -83,14 +88,12 @@ byte addPayload(byte DataID) {
     outBuff[payloadLen + 0] = 0x12;
     outBuff[payloadLen + 1] = lowByte(long(lon));
     outBuff[payloadLen + 2] = highByte(long(lon));
-    //outBuff[payloadLen + 1] = FixInt(long(lon), 1);
-    //outBuff[payloadLen + 2] = FixInt(long(lon), 2);
     addedLen = 3;
     break;
   case 0x12+8:  // Longitude, after "."
     outBuff[payloadLen + 0] = 0x12 + 8;
-    outBuff[payloadLen + 1] = lowByte(long((lon - long(lon)) * 100000.0));  // Only allow .00000 5 digits
-    outBuff[payloadLen + 2] = highByte(long((lon - long(lon)) * 100000.0));  // Only allow .00000 5 digits after .
+    outBuff[payloadLen + 1] = lowByte(long((lon - long(lon)) * 1000000.0));  // Only allow .000000 6 digits
+    outBuff[payloadLen + 2] = highByte(long((lon - long(lon)) * 1000000.0));  // Only allow .000000 6 digits after .
     addedLen = 3;
     break;
   case 0x1A+8:  // E/W
@@ -108,8 +111,8 @@ byte addPayload(byte DataID) {
     break;
   case 0x13+8:  // Latitude, after "."
     outBuff[payloadLen + 0] = 0x13 + 8;
-    outBuff[payloadLen + 1] = lowByte(long((lat - long(lat)) * 100000.0));   // Only allow .00000 5 digits
-    outBuff[payloadLen + 2] = highByte(long((lat - long(lat)) * 100000.0));  // Only allow .00000 5 digits after .
+    outBuff[payloadLen + 1] = lowByte(long((lat - long(lat)) * 1000000.0));   // Only allow .000000 6 digits
+    outBuff[payloadLen + 2] = highByte(long((lat - long(lat)) * 1000000.0));  // Only allow .000000 6 digits after .
     addedLen = 3;
     break;
   case 0x1B+8:  // N/S
@@ -119,15 +122,17 @@ byte addPayload(byte DataID) {
     addedLen = 3;
     break;
   case 0x14:  // course, before ".". OK
+    tmp = int(heading);
     outBuff[payloadLen + 0] = 0x14;
-    outBuff[payloadLen + 1] = lowByte(heading);//FixInt(heading, 1);
-    outBuff[payloadLen + 2] = highByte(heading);//FixInt(heading, 2);
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = highByte(tmp);
     addedLen = 3;
     break;
-  case 0x14+8:  // course, after "."  .. check calculation
+  case 0x14+8:  // course, after "."
+    tmp = int(heading*100.0f)%100;
     outBuff[payloadLen + 0] = 0x14 + 8;
-    outBuff[payloadLen + 1] = 0x00;
-    outBuff[payloadLen + 2] = 0x00;
+    outBuff[payloadLen + 1] = lowByte(tmp);
+    outBuff[payloadLen + 2] = lowByte(tmp);
     addedLen = 3;
     break;
   default:
@@ -140,9 +145,6 @@ byte addEnd() {
   return 1;
 }
 
-// Sending packets. Create frame with correct data
-// Frame format:
-//
 byte sendPayload(byte len) {
 
   frsky.write(0x5E);

@@ -1,8 +1,5 @@
 #ifdef FRSKY_D
 
-#include "inttypes.h"
-#include "Arduino.h"
-
 byte addPayload(byte DataID);
 byte sendPayload(byte len);
 
