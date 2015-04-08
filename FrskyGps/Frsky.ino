@@ -1,40 +1,34 @@
 #ifdef FRSKY_D
 void update_frsky() {
 
-  f_curMillis = millis();
-  if (f_curMillis - f_preMillis > f_delMillis) {
-    // save the last time you sent the messaga
-    f_preMillis = f_curMillis;
+  // 200ms payload, construct Frame 1 on every loop
+  packetOpen = true;
 
-    // 200ms payload, construct Frame 1 on every loop
-    packetOpen = true;
+  payloadLen += addPayload(0x13);   // Longitude dddmmm
+  payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
+  payloadLen += addPayload(0x23);   // E/W
 
-    payloadLen += addPayload(0x13);   // Longitude dddmmm
-    payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
-    payloadLen += addPayload(0x23);   // E/W
+  payloadLen += addPayload(0x12);   // Latitude dddmmm
+  payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
+  payloadLen += addPayload(0x22);   // N/S
 
-    payloadLen += addPayload(0x12);   // Latitude dddmmm
-    payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
-    payloadLen += addPayload(0x22);   // N/S
+  payloadLen += addPayload(0x01);   // GPS Altitude
+  payloadLen += addPayload(0x09);   // GPS Altitude "."
 
-    payloadLen += addPayload(0x01);   // GPS Altitude
-    payloadLen += addPayload(0x09);   // GPS Altitude "."
-
-    // 1000ms (1s) payload, contruct Frame every second
-    if(msCounter % 5 == 0) {
-      payloadLen += addPayload(0x05);   // Temperature 2 -> sats    
-      payloadLen += addPayload(0x14);   // Course, degree
-      payloadLen += addPayload(0x1c);   // Course, after "."
-      payloadLen += addPayload(0x11);   // GPS Speed Knots
-      payloadLen += addPayload(0x19);   // GPS Speed after "."
-    }
-
-    packetOpen = false;
-    payloadLen = sendPayload(payloadLen);
-    
-    // Update loop counter
-    msCounter ++;
+  // 1000ms (1s) payload, contruct Frame every second
+  if(msCounter % 5 == 0) {
+    payloadLen += addPayload(0x05);   // Temperature 2 -> sats    
+    payloadLen += addPayload(0x14);   // Course, degree
+    payloadLen += addPayload(0x1c);   // Course, after "."
+    payloadLen += addPayload(0x11);   // GPS Speed Knots
+    payloadLen += addPayload(0x19);   // GPS Speed after "."
   }
+
+  packetOpen = false;
+  payloadLen = sendPayload(payloadLen);
+
+  // Update loop counter
+  msCounter ++;
 }
 
 byte addPayload(byte DataID) {
@@ -92,8 +86,8 @@ byte addPayload(byte DataID) {
     break;
   case 0x12+8:  // Longitude, after "."
     outBuff[payloadLen + 0] = 0x12 + 8;
-    outBuff[payloadLen + 1] = lowByte(long((lon - long(lon)) * 1000000.0));  // Only allow .000000 6 digits
-    outBuff[payloadLen + 2] = highByte(long((lon - long(lon)) * 1000000.0));  // Only allow .000000 6 digits after .
+    outBuff[payloadLen + 1] = lowByte(long((lon - long(lon)) * 10000.0));
+    outBuff[payloadLen + 2] = highByte(long((lon - long(lon)) * 10000.0));
     addedLen = 3;
     break;
   case 0x1A+8:  // E/W
@@ -111,8 +105,8 @@ byte addPayload(byte DataID) {
     break;
   case 0x13+8:  // Latitude, after "."
     outBuff[payloadLen + 0] = 0x13 + 8;
-    outBuff[payloadLen + 1] = lowByte(long((lat - long(lat)) * 1000000.0));   // Only allow .000000 6 digits
-    outBuff[payloadLen + 2] = highByte(long((lat - long(lat)) * 1000000.0));  // Only allow .000000 6 digits after .
+    outBuff[payloadLen + 1] = lowByte(long((lat - long(lat)) * 10000.0));
+    outBuff[payloadLen + 2] = highByte(long((lat - long(lat)) * 10000.0));
     addedLen = 3;
     break;
   case 0x1B+8:  // N/S
@@ -183,4 +177,5 @@ byte sendPayload(byte len) {
   return 0;
 }
 #endif
+
 

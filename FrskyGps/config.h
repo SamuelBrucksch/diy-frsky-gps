@@ -4,18 +4,10 @@
  *
  * If using X-series you need to download the Sport Library:
  * http://www.rcgroups.com/forums/showthread.php?t=2245978
- * Its attached to the first post.
+ * It is attached to the first post.
  *
  */
 #define FRSKY_D
-
-/* #### GPS ####
- *
- * set baud rate of your gps
- *
- */
-#define BAUD 38400
-
 
 /* #### Telemetry pin ####
  *
