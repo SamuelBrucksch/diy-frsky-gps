@@ -64,6 +64,8 @@ void loop() {
     //blink with 2hz
     if (millis() % 1000 < 500){
       digitalWrite(13, HIGH);
+    }else{
+      digitalWrite(13, LOW); 
     }
     break;
   case GPS_FIX3D:
