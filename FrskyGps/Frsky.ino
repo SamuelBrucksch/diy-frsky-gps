@@ -1,27 +1,26 @@
 #ifdef FRSKY_D
 void update_frsky() {
-
-  // 200ms payload, construct Frame 1 on every loop
   packetOpen = true;
 
-  payloadLen += addPayload(0x13);   // Longitude dddmmm
-  payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
-  payloadLen += addPayload(0x23);   // E/W
+    payloadLen += addPayload(0x13);   // Longitude dddmmm
+    payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
+    payloadLen += addPayload(0x23);   // E/W
 
-  payloadLen += addPayload(0x12);   // Latitude dddmmm
-  payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
-  payloadLen += addPayload(0x22);   // N/S
+    payloadLen += addPayload(0x12);   // Latitude dddmmm
+    payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
+    payloadLen += addPayload(0x22);   // N/S
 
-  payloadLen += addPayload(0x01);   // GPS Altitude
-  payloadLen += addPayload(0x09);   // GPS Altitude "."
+    payloadLen += addPayload(0x01);   // GPS Altitude
+    payloadLen += addPayload(0x09);   // GPS Altitude (after ".")
 
   // 1000ms (1s) payload, contruct Frame every second
-  if(msCounter % 5 == 0) {
+  if(msCounter % TELEMETRY_HZ == 0) {
     payloadLen += addPayload(0x05);   // Temperature 2 -> sats    
     payloadLen += addPayload(0x14);   // Course, degree
     payloadLen += addPayload(0x1c);   // Course, after "."
     payloadLen += addPayload(0x11);   // GPS Speed Knots
     payloadLen += addPayload(0x19);   // GPS Speed after "."
+    msCounter = 0;
   }
 
   packetOpen = false;
@@ -57,10 +56,9 @@ byte addPayload(byte DataID) {
     // For example if we have 7 satellites and we have solid 3D fix outcome will be
     // (7 * 10) + 3 = 73   (7 satelliteds, 3 = 3D Fix)
   case 0x05:
-    tmp = (sats*10) + fix;
     outBuff[payloadLen + 0] = 0x05;
-    outBuff[payloadLen + 1] = lowByte(tmp);
-    outBuff[payloadLen + 2] = highByte(tmp);
+    outBuff[payloadLen + 1] = lowByte(sats);
+    outBuff[payloadLen + 2] = highByte(sats);
     addedLen = 3;
     break;
   case 0x11:  // GPS Speed, before "."
