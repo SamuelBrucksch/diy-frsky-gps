@@ -1,5 +1,5 @@
 # diy-frsky-gps
-Use any gps you like to interface with frsky telemetry. GPS Protocol and baudrate is detected automatically.
+Use any gps you like to interface with frsky telemetry. GPS Protocol and baudrate is detected automatically. Use an arduino Mini or Nano.
 
 In config.h choose protocol:
 
