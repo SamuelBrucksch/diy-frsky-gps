@@ -15,11 +15,11 @@
 SoftwareSerial frsky(3, TELEMETRY_TX_PIN, true);
 #elif defined(FRSKY_X)
 #include "FrSkySportSensor.h"
-#include "FrSkySportSensorGps.h"
+#include "CustomFrSkySportSensorGps.h"
 #include "FrSkySportSensorRpm.h"
 #include "FrSkySportSingleWireSerial.h"
 #include "FrSkySportTelemetry.h"
-FrSkySportSensorGps gpsSensor;
+CustomFrSkySportSensorGps gpsSensor;
 FrSkySportSensorRpm rpmSensor;
 FrSkySportTelemetry frsky;
 #endif
@@ -102,7 +102,6 @@ void loop() {
     update_frsky();
   }
 #elif defined(FRSKY_X)
-    //ignore time
     rpmSensor.setData(0, 0, sats);
     gpsSensor.setData(lat, lon, gps_alt, groundspeed, heading, 0, 0, 0, 0, 0, 0);
     frsky.send();
