@@ -28,10 +28,10 @@
 #define GPS_DATE_TIME_DATA_PERIOD 10000;
 
 
-class FrSkySportSensorGps : public FrSkySportSensor
+class CustomFrSkySportSensorGps : public FrSkySportSensor
 {
   public:
-    FrSkySportSensorGps(SensorId id = GPS_DEFAULT_ID);
+    CustomFrSkySportSensorGps(SensorId id = GPS_DEFAULT_ID);
     void setData(float lat, float lon, float alt, float speed, float cog, uint8_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
     virtual void send(FrSkySportSingleWireSerial& serial, uint8_t id, uint32_t now);
     virtual uint16_t decodeData(uint8_t id, uint16_t appId, uint32_t data);
